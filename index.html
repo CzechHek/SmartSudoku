@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Smart Sudoku</title>
+
+	<script src="sudoku/generator.js"></script>
+	<script src="sudoku/solver.js"></script>
+
+	<script src="utils/utils.js"></script>
+	<script src="utils/seededRandom.js"></script>
+	<script src="utils/settings.js"></script>
+	<script src="utils/history.js"></script>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300..700&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+<nav>
+	<a id="header" href="#main-menu">SMART SUDOKU</a>
+</nav>
+
+<div id="screens">
+	<div id="main-menu">
+		<button type="button" onclick="navigateTo('start-game')">
+			<i class="fas fa-play"></i>
+			Start Game
+		</button>
+		<button type="button" id="continue-button" onclick="continueLastGame()" disabled="disabled">
+			<i class="fas fa-forward"></i>
+			Continue Last
+		</button>
+		<button type="button" id="history-button" onclick="navigateTo('history')" disabled="disabled">
+			<i class="fas fa-history"></i>
+			Game History
+		</button>
+		<button type="button" onclick="navigateTo('settings')">
+			<i class="fas fa-cog"></i>
+			Settings
+		</button>
+	</div>
+
+	<div id="start-game">
+		<div class="subgrid-dimensions card">
+			<label for="subgrid-rows">Subgrid rows: <span id="subgrid-rows-value"></span></label>
+			<input type="range" id="subgrid-rows" name="subgrid-rows" min="2" max="5" value="3">
+
+			<label for="subgrid-cols">Subgrid columns: <span id="subgrid-cols-value"></span></label>
+			<input type="range" id="subgrid-cols" name="subgrid-cols" min="2" max="5" value="3">
+		</div>
+
+		<div class="seed card">
+			<label for="seed">Seed:</label>
+			<input type="number" id="seed" maxlength="3" title="Seed to use to generate Sudoku, from range 0-999."
+			       value="0">
+			<button type="button" id="decrease-seed" onclick="decreaseSeed()" title="Decrease seed by 1.">
+				<i class="fas fa-minus"></i>
+			</button>
+			<button type="button" id="increase-seed" onclick="increaseSeed()" title="Increase seed by 1.">
+				<i class="fas fa-plus"></i>
+			</button>
+			<button type="button" id="random-seed" onclick="setRandomSeed()" title="Generate random seed.">
+				<i class="fas fa-dice"></i>
+			</button>
+		</div>
+
+		<div class="max-numbers-to-remove card">
+			<label for="max-numbers-to-remove">Max numbers to remove: <span
+					id="max-numbers-to-remove-value"></span></label>
+			<input type="range" id="max-numbers-to-remove" name="max-numbers-to-remove" min="5" max="25" value="50">
+		</div>
+
+		<button type="submit" class="card" onclick="navigateTo('game')">
+			<i class="fas fa-play"></i>
+			Start Game
+		</button>
+
+		<button type="reset" class="card" onclick="navigateTo('main-menu')">
+			<i class="fas fa-arrow-left"></i>
+			Back to Main Menu
+		</button>
+	</div>
+
+	<div id="game">
+		<div id="game-board"></div>
+		<div id="game-info">
+			<div id="numbers-left" class="card">Numbers left: <span id="numbers-left-value"></span></div>
+			<div id="time" class="card">Time: <span id="time-value"></span></div>
+			<div id="numbers-removed" class="card">Numbers removed: <span id="numbers-removed-value"></span></div>
+		</div>
+
+		<div id="numbers"></div>
+	</div>
+
+	<div id="history">
+		<div id="history-container"></div>
+		<button type="reset" class="card" onclick="navigateTo('main-menu')">
+			Back to Main Menu
+			<i class="fas fa-arrow-left"></i>
+		</button>
+	</div>
+
+	<div id="settings">
+		<div class="card">
+			<label for="highlight">Highlight selected row, column and sub grid:</label>
+			<input type="checkbox" id="highlight">
+		</div>
+		<div class="card">
+			<label for="warn-duplicates">Warn about duplicates:</label>
+			<input type="checkbox" id="warn-duplicates">
+		</div>
+		<div class="card">
+			<label for="hide-completed">Hide completed numbers:</label>
+			<input type="checkbox" id="hide-completed">
+		</div>
+		<div class="card">
+			<label for="autosolve">Autofill when single valid:</label>
+			<input type="checkbox" id="autosolve">
+		</div>
+		<div class="card">
+			<label for="volume">Sounds volume:</label>
+			<input type="range" id="volume" min="0" max="100">
+		</div>
+		<div id="theme-switch" class="card">
+			<label for="theme">Theme:</label>
+			<label for="theme" class="theme-switch">
+				<i class="fas fa-sun"></i>
+			</label>
+			<input type="checkbox" id="theme" style="display: none;">
+		</div>
+		<button type="reset" class="card" onclick="navigateTo('main-menu')">
+			Back to Main Menu
+			<i class="fas fa-arrow-left"></i>
+		</button>
+	</div>
+</div>
+
+
+</body>
+
+<script>
+	let timer;
+	let secondsElapsed;
+	let cells;
+	let selectableNumbers;
+	let sudoku;
+	let highlighting;
+	let warnDuplicates;
+	let hideCompleted;
+	let autosolve;
+	let rows;
+	let columns;
+	let seed;
+	let maxNumbersToRemove;
+
+	function showHistory() {
+		const historyContainer = document.getElementById('history-container');
+		const gameHistory = JSON.parse(localStorage.getItem("game-history"));
+
+		// Clear the history container
+		historyContainer.innerHTML = '';
+
+		gameHistory.forEach(game => {
+			const card = document.createElement('div');
+			card.classList.add('card');
+
+			const checkmark = document.createElement('i');
+			checkmark.classList.add('fas', game.numbersLeft === 0 ? 'fa-check' : 'fa-times');
+			card.appendChild(checkmark);
+
+			const numsLeft = document.createElement('p');
+			numsLeft.textContent = `Numbers left: ${game.numbersLeft}`;
+			card.appendChild(numsLeft);
+
+			const rowsAndCols = document.createElement('p');
+			rowsAndCols.textContent = `Subgrid rows: ${game.rows}, columns: ${game.cols}`;
+			card.appendChild(rowsAndCols);
+
+			const timeSpent = document.createElement('p');
+			timeSpent.textContent = `Time spent: ${formatSecondsToTime(game.secondsElapsed)}`;
+			card.appendChild(timeSpent);
+
+			if (game.numbersLeft !== 0) {
+				const continueButton = document.createElement('button');
+				continueButton.innerHTML = '<i class="fas fa-play"></i>';
+				continueButton.title = 'Continue';
+				continueButton.onclick = () => loadGame(game);
+				card.appendChild(continueButton);
+			}
+
+			const restartButton = document.createElement('button');
+			restartButton.innerHTML = '<i class="fas fa-redo"></i>';
+			restartButton.title = 'Restart';
+			restartButton.onclick = () => restartGame(game);
+			card.appendChild(restartButton);
+
+			const deleteButton = document.createElement('button');
+			deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+			deleteButton.title = 'Delete from history';
+			deleteButton.onclick = () => deleteGame(game, card);
+			card.appendChild(deleteButton);
+
+			historyContainer.appendChild(card);
+		});
+
+
+	}
+
+	function deleteGame(game, historyCard) {
+		deleteGameFromHistory(game);
+
+		// Remove the card from history screen container
+		const historyContainer = document.getElementById('history-container');
+		historyContainer.removeChild(historyCard);
+	}
+
+	function navigateTo(page, customStart = false) {
+		// Hide all screens
+		document.querySelectorAll("#screens > div").forEach(screen => {
+			screen.classList.remove("active");
+		});
+
+		// Show the requested screen
+		document.getElementById(page).classList.add("active");
+
+		// Update the hash
+		window.location.hash = page;
+
+
+		switch (page) {
+			// Start game when user navigates to #game
+			case "game":
+				if (customStart) return
+				startGame();
+				break;
+
+			// Disable continue button on main screen if there is no last game
+			case "main-menu":
+				// Disable continue button if there is no last game, or it is completed
+				const lastGame = getLastGameFromHistory();
+				document.getElementById("continue-button").disabled = !lastGame || lastGame.numbersLeft === 0;
+
+				// Disable history button if there is no history
+				const history = JSON.parse(localStorage.getItem("game-history"));
+				document.getElementById("history-button").disabled = !history || history.length === 0;
+				break;
+
+			// Generate cards with values from history
+			case "history":
+				showHistory();
+				break;
+		}
+	}
+
+	function handleHashChange() {
+		if (timer) {
+			clearInterval(timer);
+		}
+
+		const page = window.location.hash.slice(1); // Extract text after "#"
+		navigateTo(page);
+	}
+
+	function continueLastGame() {
+		let lastGame = getLastGameFromHistory();
+
+		if (!lastGame || lastGame.numbersLeft === 0) {
+			navigateTo("start-game");
+			return;
+		}
+
+		loadGame(lastGame);
+	}
+
+	function loadGame(game) {
+		navigateTo("game", true);
+		startGame(game.rows, game.columns, game.seed, game.maxNumbersToRemove);
+	}
+
+	function restartGame(game) {
+		// Delete the game from history, then load it
+		deleteGameFromHistory(game);
+		loadGame(game);
+	}
+
+	function startGame(overrideRows, overrideColumns, overrideSeed, overrideMaxNumbersToRemove) {
+		// Get the values
+		rows = overrideRows || document.getElementById("subgrid-rows").value;
+		columns = overrideColumns || document.getElementById("subgrid-cols").value;
+		seed = overrideSeed != null ? overrideSeed : document.getElementById("seed").value;
+		maxNumbersToRemove = overrideMaxNumbersToRemove || document.getElementById("max-numbers-to-remove").value;
+
+		console.log("Start game with rows: " + rows + ", columns: " + columns + ", seed: " + seed + ", maxNumbersToRemove: " + maxNumbersToRemove)
+
+		sudoku = new Sudoku(rows, columns, seed);
+		sudoku.generateFilledBoard();
+		let cellsRemoved = sudoku.removeCells(maxNumbersToRemove);
+
+		document.getElementById("numbers-left-value").textContent = cellsRemoved;
+		document.getElementById("numbers-removed-value").textContent = cellsRemoved;
+
+		// Create divs for the cells
+		const gameDiv = document.getElementById("game-board");
+
+		gameDiv.innerHTML = "";
+		gameDiv.style.gridTemplateColumns = `repeat(${sudoku.size}, 0fr)`;
+
+		cells = [];
+		selectableNumbers = [];
+
+		highlighting = localStorage.getItem("highlight") === "true";
+		warnDuplicates = localStorage.getItem("warn-duplicates") === "true";
+		hideCompleted = localStorage.getItem("hide-completed") === "true";
+		autosolve = localStorage.getItem("autosolve") === "true";
+
+		let loadedGame = loadGameFromHistory(rows, columns, seed, maxNumbersToRemove);
+
+		if (loadedGame && loadedGame.numbersLeft === 0) {
+			console.log("Game already completed, ignoring saved game.");
+			loadedGame = null;
+		}
+
+		// Load seconds elapsed from the saved game
+		if (loadedGame && loadedGame.secondsElapsed) {
+			secondsElapsed = loadedGame.secondsElapsed;
+		} else {
+			secondsElapsed = 0;
+		}
+
+		console.log("Loaded game: ", loadedGame)
+
+		// Create a div for each cell
+		for (let i = 0; i < sudoku.cellCount; i++) {
+			const cellDiv = document.createElement("div");
+			cellDiv.classList.add("cell");
+
+			let value = sudoku.getByIndex(i);
+
+			if (value != null) {
+				cellDiv.classList.add("filled");
+
+				// If the number is greater than 10, display it as a letter
+				cellDiv.textContent = (value + 1).toString(26).toUpperCase();
+			} else if (loadedGame && loadedGame[i]) {
+				cellDiv.textContent = loadedGame[i];
+			}
+
+			const row = Math.floor(i / sudoku.size);
+			const col = i % sudoku.size;
+
+			if ((row + 1) % sudoku.subBoxHeight === 0) {
+				cellDiv.style.marginBottom = "7px";
+			}
+			if ((col + 1) % sudoku.subBoxWidth === 0) {
+				cellDiv.style.marginRight = "7px";
+			}
+
+			cellDiv.onclick = () => handleCellClick(cellDiv);
+
+			gameDiv.appendChild(cellDiv);
+
+			cells.push(cellDiv);
+		}
+
+		const numbersDiv = document.getElementById("numbers");
+		numbersDiv.innerHTML = "";
+
+		// Create a div for each number
+		for (let i = 0; i < sudoku.size; i++) {
+			// Create a div for the number
+			const numberDiv = document.createElement("div");
+			numberDiv.classList.add("cell");
+			numberDiv.classList.add("number-selection");
+
+			// If the number is greater than 10, display it as a letter
+			numberDiv.textContent = (i + 1).toString(26).toUpperCase();
+
+			numberDiv.onclick = () => handleNumberClick(numberDiv);
+
+			// Add the number to the numbers div
+			numbersDiv.appendChild(numberDiv);
+
+			selectableNumbers.push(numberDiv);
+		}
+
+		// Add delete button with trashcan icon
+		const deleteDiv = document.createElement("div");
+		deleteDiv.classList.add("cell");
+		deleteDiv.classList.add("number-selection");
+		deleteDiv.innerHTML = '<i class="fas fa-trash"></i>';
+
+		deleteDiv.onclick = () => handleDeleteClick();
+
+		numbersDiv.appendChild(deleteDiv);
+
+		// Update the timer every second
+		timer = setInterval(updateTimer, 1000);
+
+		updateTimer();
+
+		checkForDuplicates();
+	}
+
+	/**
+	 * Checks how many numbers are left to fill in the Sudoku
+	 * If there are no numbers left, the game ends
+	 * Also handles checking for duplicates and hiding completed numbers
+	 * Calls game end handler if the Sudoku is solved
+	 */
+	function updateNumbersLeft() {
+		const numbersLeft = cells.filter(cell => !cell.textContent).length;
+
+		document.getElementById("numbers-left-value").textContent = numbersLeft;
+
+		saveGame();
+
+		if (numbersLeft === 0) {
+			handleGameEnd();
+			return
+		}
+
+		selectableNumbers.forEach(n => {
+			n.classList.remove("hidden");
+		});
+
+		checkForDuplicates();
+	}
+
+	function saveGame() {
+		saveGameToHistory(rows, columns, seed, maxNumbersToRemove, cells, secondsElapsed);
+	}
+
+	// Fills first empty cell with a number if there is only one possible number
+	// Called every second if autosolve is enabled
+	function handleAutoSolve() {
+		if (!autosolve) {
+			return;
+		}
+
+		let emptyCells = cells.filter(c => !c.textContent);
+
+		if (emptyCells.some(cell => {
+			let possibleNumbers = getPossibleNumbers(cell);
+
+			if (possibleNumbers.size === 1) {
+				cell.textContent = possibleNumbers.values().next().value;
+				console.log("Auto-filled cell at index " + cells.indexOf(cell) + " with value " + cell.textContent);
+				return true;
+			}
+		})) {
+			updateNumbersLeft();
+		}
+	}
+
+	/**
+	 * Returns a set of possible numbers for a cell
+	 * @param cell
+	 * @returns {Set<number>}
+	 */
+	function getPossibleNumbers(cell) {
+		let relevantCells = getRelevantCellsFromIndex(cells.indexOf(cell));
+
+		let possibleNumbers = new Set(numRange(sudoku.size).map(n => (n + 1).toString(26).toUpperCase()));
+
+		relevantCells.forEach(c => {
+			if (c.textContent) {
+				possibleNumbers.delete(c.textContent);
+			}
+		});
+
+		return possibleNumbers;
+	}
+
+	/**
+	 * Returns cells that are in the same row, column and subgrid as the cell at the given index
+	 * @param index
+	 * @returns {[]} Array of relevant cells
+	 */
+	function getRelevantCellsFromIndex(index) {
+		const row = Math.floor(index / sudoku.size);
+		const col = index % sudoku.size;
+
+		let relevantCells = [];
+
+		for (let i = 0; i < sudoku.size; i++) {
+			relevantCells.push(cells[row * sudoku.size + i]);
+			relevantCells.push(cells[i * sudoku.size + col]);
+		}
+
+		const subgridStartRow = row - row % sudoku.subBoxHeight;
+		const subgridStartCol = col - col % sudoku.subBoxWidth;
+
+		for (let i = 0; i < sudoku.subBoxHeight; i++) {
+			for (let j = 0; j < sudoku.subBoxWidth; j++) {
+				relevantCells.push(cells[(subgridStartRow + i) * sudoku.size + subgridStartCol + j]);
+			}
+		}
+
+		return relevantCells;
+	}
+
+	/**
+	 * Handles a click on a cell in the game board
+	 * Highlights the row, column and subgrid of the cell
+	 * If the cell is not filled, it is selected
+	 * If the cell is filled, all cells with the same number are highlighted
+	 * @param cell
+	 */
+	function handleCellClick(cell) {
+		cells.forEach(c => c.classList.remove("selected"));
+		cells.forEach(c => c.classList.remove("highlight"));
+
+		// Select non-filled cells
+		if (!cell.classList.contains("filled")) {
+			cells.forEach(c => c.classList.remove("selected"));
+			cell.classList.add("selected");
+
+			// Highlight the row, column and subgrid
+			if (highlighting || hideCompleted) {
+				const index = cells.indexOf(cell);
+
+				let relevantCells = getRelevantCellsFromIndex(index);
+
+				if (highlighting) {
+					relevantCells.forEach(c => c.classList.add("highlight"));
+				}
+
+				if (hideCompleted) {
+					// Only show numbers that are not in relevant cells
+					let invalidNumbers = new Set();
+
+					relevantCells.forEach(c => {
+						if (c.textContent) {
+							invalidNumbers.add(c.textContent);
+						}
+					});
+
+					selectableNumbers.forEach(n => {
+						if (invalidNumbers.has(n.textContent)) {
+							n.classList.add("hidden");
+						} else {
+							n.classList.remove("hidden");
+						}
+					});
+				}
+			}
+		}
+
+		// Highlight cells with the same number
+		if (highlighting && cell.textContent) {
+			cells.forEach(c => {
+				if (c.textContent === cell.textContent) {
+					c.classList.add("highlight");
+				} else {
+					c.classList.remove("highlight");
+				}
+			});
+		}
+	}
+
+	/**
+	 * Handles a click on a number in the numbers div
+	 * If a cell is selected, the number is placed in the cell
+	 * @param number
+	 */
+	function handleNumberClick(number) {
+		let selectedCell = cells.find(c => c.classList.contains("selected"));
+
+		if (selectedCell) {
+			selectedCell.textContent = number.textContent;
+			selectedCell.classList.remove("selected");
+		}
+
+		cells.forEach(c => c.classList.remove("highlight"));
+
+		updateNumbersLeft();
+	}
+
+	/**
+	 * Handles a click on the delete button
+	 * If a cell is selected, it is cleared
+	 */
+	function handleDeleteClick() {
+		let selectedCell = cells.find(c => c.classList.contains("selected"));
+		if (selectedCell) {
+			selectedCell.textContent = "";
+
+			selectedCell.classList.remove("selected");
+		}
+
+		if (highlighting) {
+			cells.forEach(c => c.classList.remove("highlight"));
+		}
+
+		updateNumbersLeft();
+	}
+
+	/**
+	 * Checks if the text content of all cells matches the solution
+	 * @returns {boolean}
+	 */
+	function matchesSolution() {
+		return cells.every(c => c.textContent === (sudoku.getSolutionByIndex(cells.indexOf(c)) + 1).toString(26).toUpperCase());
+	}
+
+	/**
+	 * Plays a sound from the given path with the volume from local storage
+	 * @param soundPath
+	 */
+	function playSound(soundPath) {
+		let audio = new Audio(soundPath);
+		audio.volume = localStorage.getItem("volume") / 100;
+		audio.play();
+	}
+
+	function handleGameEnd() {
+		if (matchesSolution()) {
+			// Play finish sound
+			playSound("sounds/finish.mp3");
+
+			setTimeout(() => {
+				alert(`Congratulations! You have completed the Sudoku, in ${document.getElementById("time-value").textContent}.`);
+				navigateTo("main-menu");
+			}, 250);
+		} else {
+			// Play error sound
+			playSound("sounds/error.mp3");
+
+			setTimeout(() => {
+				alert("The Sudoku isn't solved correctly.");
+			}, 250);
+		}
+	}
+
+	/**
+	 * Checks for duplicates in the same row, column or subgrid
+	 * If duplicates are found, the cells are marked with the "duplicate" class
+	 * If duplicates are found, the error sound is played
+	 */
+	function checkForDuplicates() {
+		if (!warnDuplicates) {
+			return;
+		}
+
+		cells.forEach(c => c.classList.remove("duplicate"));
+
+		let foundDuplicates = false;
+
+		cells.forEach((cell, index) => {
+			if (cell.textContent && !cell.classList.contains("filled")) {
+				let relevantCells = getRelevantCellsFromIndex(index);
+
+				relevantCells.forEach(c => {
+					if (cell !== c && c.textContent && c.textContent === cell.textContent) {
+						c.classList.add("duplicate");
+						cell.classList.add("duplicate");
+						foundDuplicates = true;
+					}
+				});
+			}
+		});
+
+		if (foundDuplicates) {
+			// Play error sound
+			playSound("sounds/error.mp3");
+		}
+	}
+
+	/**
+	 * Updates the timer with the current time
+	 * If autosolve is enabled, it fills in cells with only one possible number
+	 */
+	function updateTimer() {
+		document.getElementById("time-value").textContent = formatSecondsToTime(secondsElapsed++);
+		handleAutoSolve();
+		saveGame();
+	}
+
+	// Load settings from local storage and update the UI
+	loadSettings();
+
+	// Initialize settings change handlers to save settings to local storage when they change
+	initSettingsChangeHandlers();
+
+	// Listen for hash changes
+	window.onhashchange = handleHashChange;
+
+	// Navigate to the initial screen
+	if (window.location.hash) {
+		handleHashChange();
+	} else {
+		navigateTo("main-menu");
+	}
+
+	document.addEventListener('keydown', function (e) {
+		if (!sudoku) {
+			return;
+		}
+
+		// Check if the pressed key is a valid number or letter
+		let numPressed = parseInt(e.key, 26);
+
+		if (numPressed && numPressed <= sudoku.size) {
+			let selectedCell = cells.find(c => c.classList.contains("selected"));
+
+			if (selectedCell) {
+				selectedCell.textContent = e.key.toUpperCase();
+				selectedCell.classList.remove("selected");
+
+				cells.forEach(c => c.classList.remove("highlight"));
+				updateNumbersLeft();
+			}
+		} else if (e.key === "Backspace" || e.key === "Delete") {
+			let selectedCell = cells.find(c => c.classList.contains("selected"));
+
+			if (selectedCell) {
+				selectedCell.textContent = "";
+				selectedCell.classList.remove("selected");
+
+				cells.forEach(c => c.classList.remove("highlight"));
+				updateNumbersLeft();
+			}
+		}
+	});
+
+
+</script>
+
+</html>

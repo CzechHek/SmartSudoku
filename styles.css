@@ -1,0 +1,336 @@
+:root {
+    --accent-color: #66d015;
+    --bg-color: #dcdcdc;
+    --text-color: #333;
+
+    --nav-size: 80px;
+
+    --cell-size: 50px;
+    --border-radius: 5px;
+    --grid-gap: 5px;
+    --cell-font-size: 1.5rem;
+
+    --font-size: 2rem;
+}
+
+.dark-theme {
+    --bg-color: #333;
+    --text-color: #f0f0f0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    user-select: none;
+}
+
+input {
+    border: 2px solid var(--bg-color);
+    border-radius: var(--border-radius);
+}
+
+input:hover, input:focus, button:hover, button:focus {
+    border-color: var(--accent-color);
+}
+
+nav {
+    background-color: #222;
+    color: var(--accent-color);
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 10px 0;
+    display: block;
+}
+
+nav a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 4rem;
+    font-family: "Teko", sans-serif;
+    animation: fade 2s linear infinite;
+}
+
+@keyframes fade {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.teko-font {
+    font-family: "Teko", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 300;
+    font-style: normal;
+}
+
+label.theme-switch {
+    cursor: pointer;
+}
+
+/**
+ * Remove the default number input appearance
+ */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+#main-menu {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh !important;
+    flex-direction: column;
+}
+
+#main-menu button {
+    background-color: var(--accent-color);
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 30px;
+    margin: 20px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    width: 230px;
+    font-family: "Teko", sans-serif;
+    font-weight: 400;
+    transition: background-color 0.3s ease;
+}
+
+#main-menu button i {
+    margin-right: 20px;
+}
+
+#main-menu button:hover:not([disabled]) {
+    background-color: var(--text-color);
+    color: var(--accent-color);
+}
+
+#main-menu button[disabled] {
+    background-color: rgba(0, 200, 0, 0.3);
+    cursor: not-allowed;
+}
+
+#screens > :not(.active) {
+    display: none;
+}
+
+#settings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh !important;
+    flex-direction: column;
+}
+
+#history {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh !important;
+    flex-direction: column;
+}
+
+#history-container .card {
+    max-width: 600px;
+}
+
+#history-container .card p {
+    text-align: end;
+}
+
+#history-container.i {
+    margin-right: 20px;
+}
+
+#history button:nth-of-type(1) {
+    margin-left: 20px;
+}
+
+.card {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Teko", sans-serif;
+    font-size: 1.75em;
+}
+
+.subgrid-dimensions.card  {
+    flex-direction: column;
+}
+
+.card input[type="checkbox"] {
+    scale: 2;
+}
+
+.card input[type="range"] {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.card input[type="number"] {
+    width: 50px;
+    text-align: center;
+    font-family: "Teko", sans-serif;
+    font-size: 1em;
+}
+
+.card button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.card span {
+    margin-left: 10px;
+}
+
+.card:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+button.card {
+    color: var(--text-color);
+}
+
+#start-game {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh !important;
+    flex-direction: column;
+}
+
+#game {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh !important;
+    flex-direction: column;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 3px solid #777;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--cell-font-size);
+    cursor: pointer;
+    font-family: "Teko", sans-serif;
+    transition: background-color 0.75s ease, border-color 0.75s ease, color 0.75s ease;
+}
+
+.cell.highlight {
+    border: 3px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+.cell.selected {
+    background-color: var(--accent-color);
+    color: #333;
+}
+
+.cell.filled:not(.highlight) {
+    background-color: rgba(0, 100, 0, 0.3);
+}
+
+.cell.filled.highlight {
+    background-color: rgba(0, 100, 0, 0.6);
+}
+
+.cell.duplicate {
+    background-color: rgba(100, 0, 0, 0.6);
+    color: #fff;
+    animation: shake 0.5s;
+    animation-iteration-count: 1;
+}
+
+.cell.selected.duplicate {
+    background-color: rgba(200, 0, 0, 0.9);
+}
+
+.cell.duplicate.filled {
+    color: red;
+}
+
+#game-board {
+    display: grid;
+    gap: var(--grid-gap);
+    margin: 0 auto;
+    place-items: center;
+    /*max-height: 60vh;*/
+}
+
+#game-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+}
+
+#game-info .card {
+    width: 230px;
+    margin: 20px;
+}
+
+#numbers {
+    display: flex;
+    gap: var(--grid-gap);
+    grid-template-columns: repeat(9, 1fr);
+    margin: 0 auto;
+    place-items: center;
+}
+
+.cell.number-selection {
+    background-color: var(--accent-color);
+    color: #222222;
+}
+
+.cell.number-selection:hover {
+    background-color: #222222;
+    color: var(--accent-color);
+}
+
+.cell.number-selection.hidden {
+    display: none;
+}
