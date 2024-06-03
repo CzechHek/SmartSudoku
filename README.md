@@ -1,5 +1,7 @@
 # Smart Sudoku
 
+https://czechhek.github.io/SmartSudoku
+
 ## Description
 
 Semester project for the subject `KAJ` at FEL CTU.
