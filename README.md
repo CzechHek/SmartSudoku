@@ -18,7 +18,7 @@ It has a built-in solver and generator of sudoku puzzles and a variety of featur
 * Theme (light/dark)
 
 ## Sudoku options
-* Subgrid row
+* Subgrid rows
 * Subgrid columns
 * Seed (0-999)
 * Max numbers to remove

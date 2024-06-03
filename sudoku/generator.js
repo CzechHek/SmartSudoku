@@ -155,9 +155,10 @@ class Sudoku {
 				}
 			} else {
 				cellsRemoved++;
-				console.log(`Removed cell at row ${row} and column ${column}, ${cellsRemoved} removed, attempts left: ${maxAttempts}`);
 			}
 		}
+
+		console.log(`Removed ${cellsRemoved} cells from the board`);
 
 		return cellsRemoved;
 

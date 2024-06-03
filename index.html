@@ -18,6 +18,8 @@
 
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+	<link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 </head>
 
 <body>
@@ -159,64 +161,59 @@
 	let maxNumbersToRemove;
 
 	function showHistory() {
-		const historyContainer = document.getElementById('history-container');
+		const historyContainer = document.getElementById("history-container");
 		const gameHistory = JSON.parse(localStorage.getItem("game-history"));
 
 		// Clear the history container
-		historyContainer.innerHTML = '';
+		historyContainer.innerHTML = "";
 
 		gameHistory.forEach(game => {
-			const card = document.createElement('div');
-			card.classList.add('card');
+			const card = document.createElement("div");
+			card.classList.add("card");
 
-			const checkmark = document.createElement('i');
-			checkmark.classList.add('fas', game.numbersLeft === 0 ? 'fa-check' : 'fa-times');
+			const checkmark = document.createElement("i");
+			checkmark.classList.add("fas", game.numbersLeft === 0 ? "fa-check" : "fa-times");
 			card.appendChild(checkmark);
 
-			const numsLeft = document.createElement('p');
+			const numsLeft = document.createElement("p");
 			numsLeft.textContent = `Numbers left: ${game.numbersLeft}`;
 			card.appendChild(numsLeft);
 
-			const rowsAndCols = document.createElement('p');
+			const rowsAndCols = document.createElement("p");
 			rowsAndCols.textContent = `Subgrid rows: ${game.rows}, columns: ${game.cols}`;
 			card.appendChild(rowsAndCols);
 
-			const timeSpent = document.createElement('p');
+			const timeSpent = document.createElement("p");
 			timeSpent.textContent = `Time spent: ${formatSecondsToTime(game.secondsElapsed)}`;
 			card.appendChild(timeSpent);
 
 			if (game.numbersLeft !== 0) {
-				const continueButton = document.createElement('button');
-				continueButton.innerHTML = '<i class="fas fa-play"></i>';
-				continueButton.title = 'Continue';
+				const continueButton = document.createElement("button");
+				continueButton.innerHTML = "<i class='fas fa-play'></i>";
+				continueButton.title = "Continue";
 				continueButton.onclick = () => loadGame(game);
+				continueButton.type = "button";
 				card.appendChild(continueButton);
 			}
 
-			const restartButton = document.createElement('button');
-			restartButton.innerHTML = '<i class="fas fa-redo"></i>';
-			restartButton.title = 'Restart';
+			const restartButton = document.createElement("button");
+			restartButton.innerHTML = "<i class='fas fa-redo'></i>";
+			restartButton.title = "Restart";
 			restartButton.onclick = () => restartGame(game);
+			restartButton.type = "button";
 			card.appendChild(restartButton);
 
-			const deleteButton = document.createElement('button');
-			deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-			deleteButton.title = 'Delete from history';
+			const deleteButton = document.createElement("button");
+			deleteButton.innerHTML = "<i class='fas fa-trash'></i>";
+			deleteButton.title = "Delete from history";
 			deleteButton.onclick = () => deleteGame(game, card);
+			deleteButton.type = "button";
 			card.appendChild(deleteButton);
 
 			historyContainer.appendChild(card);
 		});
 
 
-	}
-
-	function deleteGame(game, historyCard) {
-		deleteGameFromHistory(game);
-
-		// Remove the card from history screen container
-		const historyContainer = document.getElementById('history-container');
-		historyContainer.removeChild(historyCard);
 	}
 
 	function navigateTo(page, customStart = false) {
@@ -288,6 +285,14 @@
 		loadGame(game);
 	}
 
+	function deleteGame(game, historyCard) {
+		deleteGameFromHistory(game);
+
+		// Remove the card from history screen container
+		const historyContainer = document.getElementById("history-container");
+		historyContainer.removeChild(historyCard);
+	}
+
 	function startGame(overrideRows, overrideColumns, overrideSeed, overrideMaxNumbersToRemove) {
 		// Get the values
 		rows = overrideRows || document.getElementById("subgrid-rows").value;
@@ -295,7 +300,7 @@
 		seed = overrideSeed != null ? overrideSeed : document.getElementById("seed").value;
 		maxNumbersToRemove = overrideMaxNumbersToRemove || document.getElementById("max-numbers-to-remove").value;
 
-		console.log("Start game with rows: " + rows + ", columns: " + columns + ", seed: " + seed + ", maxNumbersToRemove: " + maxNumbersToRemove)
+		console.log("Starting game with rows: " + rows + ", columns: " + columns + ", seed: " + seed + ", maxNumbersToRemove: " + maxNumbersToRemove)
 
 		sudoku = new Sudoku(rows, columns, seed);
 		sudoku.generateFilledBoard();
@@ -331,8 +336,6 @@
 		} else {
 			secondsElapsed = 0;
 		}
-
-		console.log("Loaded game: ", loadedGame)
 
 		// Create a div for each cell
 		for (let i = 0; i < sudoku.cellCount; i++) {
@@ -392,7 +395,7 @@
 		const deleteDiv = document.createElement("div");
 		deleteDiv.classList.add("cell");
 		deleteDiv.classList.add("number-selection");
-		deleteDiv.innerHTML = '<i class="fas fa-trash"></i>';
+		deleteDiv.innerHTML = "<i class='fas fa-trash'></i>";
 
 		deleteDiv.onclick = () => handleDeleteClick();
 
@@ -697,7 +700,7 @@
 		navigateTo("main-menu");
 	}
 
-	document.addEventListener('keydown', function (e) {
+	document.addEventListener("keydown", function (e) {
 		if (!sudoku) {
 			return;
 		}

@@ -6,7 +6,7 @@ function setDefaultSettings() {
 		localStorage.setItem("warn-duplicates", true);
 	}
 	if (localStorage.getItem("hide-completed") === null) {
-		localStorage.setItem("hide-completed", true);
+		localStorage.setItem("hide-completed", false);
 	}
 	if (localStorage.getItem("autosolve") === null) {
 		localStorage.setItem("autosolve", false);
