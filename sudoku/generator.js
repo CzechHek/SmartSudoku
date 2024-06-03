@@ -1,3 +1,11 @@
+/**
+ * Sudoku generator class
+ * Used for generating a Sudoku board, validating it and removing cells to create a puzzle
+ *
+ * @param subBoxWidth
+ * @param subBoxHeight
+ * @param seed
+ */
 class Sudoku {
 	constructor(subBoxWidth, subBoxHeight, seed) {
 		this.subBoxWidth = parseInt(subBoxWidth); // Number of boxes horizontally
@@ -10,10 +18,20 @@ class Sudoku {
 		this.solution = null;
 	}
 
+	/**
+	 * Get the value of a cell by its index
+	 * @param index
+	 * @returns {number} Value of the cell
+	 */
 	getByIndex(index) {
 		return this.board[Math.floor(index / this.size)][index % this.size];
 	}
 
+	/**
+	 * Get the correct solution of a cell by its index
+	 * @param index
+	 * @returns {number} Value of the cell
+	 */
 	getSolutionByIndex(index) {
 		return this.solution[Math.floor(index / this.size)][index % this.size];
 	}
@@ -22,6 +40,8 @@ class Sudoku {
 		return Array.from({length: this.size}, () => new Array(this.size));
 	}
 
+	// Based on https://gamedev.stackexchange.com/a/138228
+	// Shifts rows and columns in a way that each row and column has each value exactly once
 	generateFilledBoard() {
 		const shuffledCells = this.cellValues.shuffled(this.random);
 

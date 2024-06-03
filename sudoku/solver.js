@@ -1,3 +1,9 @@
+/**
+ * Sudoku solver class
+ * Used for solving a Sudoku board and checking if it has a unique solution
+ *
+ * @param {Sudoku} sudoku - Sudoku object to solve
+ */
 class Solver {
 	constructor(sudoku) {
 		this.sudoku = sudoku;
@@ -33,7 +39,7 @@ class Solver {
 			}
 		}
 
-		// If the Sudoku doesn"t have a solution, save the first
+		// If the Sudoku doesn't have a solution, save it first
 		if (this.sudoku.solution === null) {
 			// Save the first solution
 			this.sudoku.solution = this.board.deepCopy();
@@ -47,7 +53,6 @@ class Solver {
 				for (let col = 0; col < this.sudoku.size; col++) {
 					if (this.sudoku.solution[row][col] !== this.board[row][col]) {
 						// If the next solution is different, set the flag and return true to stop searching
-						//console.log("Found more than one solution")
 						this.moreSolutions = true;
 						return true;
 					}
@@ -55,7 +60,6 @@ class Solver {
 			}
 
 			// If the solution is the same, return false to continue searching for a different solution
-			//console.log("Same solution found, continuing search for another one")
 			return false;
 		}
 

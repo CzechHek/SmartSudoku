@@ -1,4 +1,10 @@
-// Seeded random - Mulberry32
+// Mulberry32 - 32-bit random seed generator
+// Source: https://github.com/bryc/code/blob/master/jshash/PRNGs.md#mulberry32
+
+/**
+ * Function to generate random numbers using a seed
+ * @param seed
+ */
 class SeededRandom {
 	constructor(seed) {
 		this.seed = seed;
